@@ -12,6 +12,7 @@ import Register from './pages/auth/Register';
 import Profile from './pages/customer/Profile';
 import ProductDetail from './pages/customer/ProductDetail';
 import Cart from './pages/customer/Cart';
+import ShopDetail from './pages/customer/ShopDetail';
 
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -41,6 +42,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/product/:slug" element={<ProductDetail />} />
+            <Route path="/shop/:slug" element={<ShopDetail />} />
             <Route path="/cart" element={<Cart />} />
 
             {/* Customer / Common Protected Routes */}

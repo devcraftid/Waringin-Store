@@ -176,9 +176,12 @@ const ProductDetail = () => {
                   </div>
                 </div>
               </div>
-              <button className="text-sm px-4 py-2 border border-primary text-primary rounded hover:bg-primary/5 transition font-medium">
+              <Link 
+                to={`/shop/${product.shops?.slug}`} 
+                className="text-sm px-4 py-2 border border-primary text-primary rounded hover:bg-primary/5 transition font-medium"
+              >
                 Kunjungi Toko
-              </button>
+              </Link>
             </div>
 
             <div className="flex-1"></div>
