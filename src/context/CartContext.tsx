@@ -25,7 +25,16 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>(() => {
     const savedCart = localStorage.getItem('waringinstore_cart');
-    return savedCart ? JSON.parse(savedCart) : [];
+    if (savedCart) {
+      try {
+        const parsed = JSON.parse(savedCart);
+        // Filter out old invalid items that don't have a shop_id
+        return parsed.filter((item: any) => item.shop_id);
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
   });
 
   useEffect(() => {
