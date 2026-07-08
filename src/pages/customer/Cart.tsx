@@ -13,7 +13,7 @@ const Cart = () => {
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = React.useState(false);
 
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (!user) {
       alert('Anda harus login terlebih dahulu untuk melakukan checkout.');
       navigate('/login');
@@ -22,85 +22,8 @@ const Cart = () => {
 
     if (items.length === 0) return;
 
-    try {
-      setIsCheckingOut(true);
-
-      // Group items by shop_id
-      const itemsByShop = items.reduce((acc, item) => {
-        if (!acc[item.shop_id]) {
-          acc[item.shop_id] = [];
-        }
-        acc[item.shop_id].push(item);
-        return acc;
-      }, {} as Record<string, typeof items>);
-
-      // Create an order for each shop
-      for (const shopId of Object.keys(itemsByShop)) {
-        const shopItems = itemsByShop[shopId];
-        const shopTotal = shopItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-
-        // 1. Insert order
-        const { data: orderData, error: orderError } = await supabase
-          .from('orders')
-          .insert([{
-            customer_id: user.id,
-            shop_id: shopId,
-            total_amount: shopTotal,
-            status: 'pending',
-            payment_method: 'bank_transfer'
-          }])
-          .select()
-          .single();
-
-        if (orderError) throw orderError;
-
-        // 2. Insert order items
-        const orderItemsToInsert = shopItems.map(item => ({
-          order_id: orderData.id,
-          product_id: item.id,
-          quantity: item.quantity,
-          price_at_time: item.price
-        }));
-
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItemsToInsert);
-
-        if (itemsError) throw itemsError;
-
-        // 3. Manual Stock Reduction (Fallback if Trigger is not installed)
-        for (const item of shopItems) {
-          // Fetch current stock first
-          const { data: product } = await supabase
-            .from('products')
-            .select('stock')
-            .eq('id', item.id)
-            .single();
-            
-          if (product && product.stock >= item.quantity) {
-            // Update stock
-            const { error: updateError } = await supabase
-              .from('products')
-              .update({ stock: product.stock - item.quantity })
-              .eq('id', item.id);
-              
-            if (updateError) {
-              console.warn(`Gagal memotong stok untuk produk ${item.id}:`, updateError.message);
-              console.warn('Ini wajar jika Anda adalah Pembeli biasa karena RLS. Harap pastikan Trigger SQL sudah dipasang di Supabase!');
-            }
-          }
-        }
-      }
-
-      clearCart();
-      navigate('/checkout/success');
-      
-    } catch (error) {
-      console.error('Error during checkout:', error);
-      alert('Terjadi kesalahan saat checkout. Pastikan semua produk tersedia atau coba lagi.');
-    } finally {
-      setIsCheckingOut(false);
-    }
+    // Redirect to proper Checkout page
+    navigate('/checkout');
   };
 
   return (

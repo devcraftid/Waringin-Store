@@ -14,6 +14,7 @@ import ProductDetail from './pages/customer/ProductDetail';
 import Cart from './pages/customer/Cart';
 import ShopDetail from './pages/customer/ShopDetail';
 import CheckoutSuccess from './pages/customer/CheckoutSuccess';
+import Checkout from './pages/customer/Checkout';
 
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -53,6 +54,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/checkout" 
+              element={
+                <ProtectedRoute>
+                  <Checkout />
                 </ProtectedRoute>
               } 
             />
