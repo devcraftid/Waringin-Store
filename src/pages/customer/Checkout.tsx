@@ -17,6 +17,7 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'qris' | 'bank_transfer' | 'cod'>('bank_transfer');
+  const [siteSettings, setSiteSettings] = useState<any>(null);
 
   useEffect(() => {
     if (!user) {
@@ -28,33 +29,43 @@ const Checkout = () => {
       return;
     }
 
-    const fetchAddresses = async () => {
+    const fetchData = async () => {
       try {
-        const { data, error } = await supabase
+        // Fetch addresses
+        const { data: addressData } = await supabase
           .from('user_addresses')
           .select('*')
           .eq('customer_id', user.id)
           .order('is_primary', { ascending: false });
           
-        if (error) throw error;
-        
-        setAddresses(data || []);
-        if (data && data.length > 0) {
-          // Select primary by default or first available
-          const primary = data.find(a => a.is_primary);
-          setSelectedAddress(primary || data[0]);
+        setAddresses(addressData || []);
+        if (addressData && addressData.length > 0) {
+          const primary = addressData.find(a => a.is_primary);
+          setSelectedAddress(primary || addressData[0]);
+        }
+
+        // Fetch site settings (Admin QRIS/Bank)
+        const { data: settingsData } = await supabase
+          .from('site_settings')
+          .select('*')
+          .limit(1)
+          .single();
+          
+        if (settingsData) {
+          setSiteSettings(settingsData);
         }
       } catch (error) {
-        console.error('Error fetching addresses:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAddresses();
+    fetchData();
   }, [user, items, navigate]);
 
   const handlePlaceOrder = async () => {
+    // ... existing logic ...
     if (!selectedAddress) {
       alert('Pilih alamat pengiriman terlebih dahulu.');
       return;
@@ -63,7 +74,6 @@ const Checkout = () => {
     try {
       setIsProcessing(true);
 
-      // Group items by shop_id
       const itemsByShop = items.reduce((acc, item) => {
         if (!acc[item.shop_id]) {
           acc[item.shop_id] = [];
@@ -72,12 +82,10 @@ const Checkout = () => {
         return acc;
       }, {} as Record<string, typeof items>);
 
-      // Create an order for each shop
       for (const shopId of Object.keys(itemsByShop)) {
         const shopItems = itemsByShop[shopId];
         const shopTotal = shopItems.reduce((total, item) => total + (item.price * item.quantity), 0);
 
-        // 1. Insert order
         const { data: orderData, error: orderError } = await supabase
           .from('orders')
           .insert([{
@@ -92,7 +100,6 @@ const Checkout = () => {
 
         if (orderError) throw orderError;
 
-        // 2. Insert order items
         const orderItemsToInsert = shopItems.map(item => ({
           order_id: orderData.id,
           product_id: item.id,
@@ -106,7 +113,6 @@ const Checkout = () => {
 
         if (itemsError) throw itemsError;
 
-        // 3. Fallback Manual Stock Reduction (if Trigger is not installed)
         for (const item of shopItems) {
           const { data: product } = await supabase
             .from('products')
@@ -115,14 +121,10 @@ const Checkout = () => {
             .single();
             
           if (product && product.stock >= item.quantity) {
-            const { error: updateError } = await supabase
+            await supabase
               .from('products')
               .update({ stock: product.stock - item.quantity })
               .eq('id', item.id);
-              
-            if (updateError) {
-              console.warn(`Fallback gagal untuk produk ${item.id} (kemungkinan karena RLS. Abaikan jika Trigger SQL sudah dipasang):`, updateError.message);
-            }
           }
         }
       }
@@ -239,33 +241,67 @@ const Checkout = () => {
                 <span className="font-bold text-gray-800">Metode Pembayaran</span>
               </div>
               
-              <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <label className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition text-center gap-3 ${paymentMethod === 'qris' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-primary/50'}`}>
-                  <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'qris'} onChange={() => setPaymentMethod('qris')} />
-                  <QrCode size={32} className={paymentMethod === 'qris' ? 'text-primary' : 'text-gray-400'} />
-                  <div>
-                    <div className="font-bold text-gray-800 text-sm">QRIS</div>
-                    <div className="text-xs text-gray-500">Gopay, OVO, Dana</div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <label className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition text-center gap-3 ${paymentMethod === 'qris' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-primary/50'}`}>
+                    <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'qris'} onChange={() => setPaymentMethod('qris')} />
+                    <QrCode size={32} className={paymentMethod === 'qris' ? 'text-primary' : 'text-gray-400'} />
+                    <div>
+                      <div className="font-bold text-gray-800 text-sm">QRIS</div>
+                      <div className="text-xs text-gray-500">Scan & Pay</div>
+                    </div>
+                  </label>
+                  
+                  <label className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition text-center gap-3 ${paymentMethod === 'bank_transfer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-primary/50'}`}>
+                    <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'bank_transfer'} onChange={() => setPaymentMethod('bank_transfer')} />
+                    <Banknote size={32} className={paymentMethod === 'bank_transfer' ? 'text-primary' : 'text-gray-400'} />
+                    <div>
+                      <div className="font-bold text-gray-800 text-sm">Transfer Bank</div>
+                      <div className="text-xs text-gray-500">Verifikasi Manual</div>
+                    </div>
+                  </label>
+                  
+                  <label className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition text-center gap-3 ${paymentMethod === 'cod' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-primary/50'}`}>
+                    <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
+                    <Truck size={32} className={paymentMethod === 'cod' ? 'text-primary' : 'text-gray-400'} />
+                    <div>
+                      <div className="font-bold text-gray-800 text-sm">Bayar di Tempat</div>
+                      <div className="text-xs text-gray-500">Cash on Delivery</div>
+                    </div>
+                  </label>
+                </div>
+
+                {/* Dynamic Payment Details from Admin Settings */}
+                {paymentMethod === 'qris' && siteSettings?.qris_image_url && (
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-6 flex flex-col items-center animate-in fade-in zoom-in duration-300">
+                    <h4 className="font-bold text-blue-900 mb-2">Scan QRIS Berikut</h4>
+                    <p className="text-sm text-blue-700 mb-4 text-center">Buka aplikasi m-banking atau e-wallet Anda (Gopay, OVO, Dana) dan scan kode di bawah ini.</p>
+                    <div className="w-64 h-80 bg-white p-4 rounded-xl shadow-sm border border-blue-200 flex items-center justify-center">
+                      <img src={siteSettings.qris_image_url} alt="QRIS Payment" className="w-full h-full object-contain" />
+                    </div>
                   </div>
-                </label>
-                
-                <label className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition text-center gap-3 ${paymentMethod === 'bank_transfer' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-primary/50'}`}>
-                  <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'bank_transfer'} onChange={() => setPaymentMethod('bank_transfer')} />
-                  <Banknote size={32} className={paymentMethod === 'bank_transfer' ? 'text-primary' : 'text-gray-400'} />
-                  <div>
-                    <div className="font-bold text-gray-800 text-sm">Transfer Bank</div>
-                    <div className="text-xs text-gray-500">Virtual Account</div>
+                )}
+
+                {paymentMethod === 'bank_transfer' && siteSettings?.bank_account_number && (
+                  <div className="bg-green-50 border border-green-100 rounded-lg p-6 animate-in fade-in zoom-in duration-300">
+                    <h4 className="font-bold text-green-900 mb-4">Transfer ke Rekening Berikut:</h4>
+                    <div className="bg-white p-4 rounded-lg border border-green-200 shadow-sm space-y-3">
+                      <div className="flex justify-between border-b border-green-50 pb-2">
+                        <span className="text-gray-500 text-sm">Bank</span>
+                        <span className="font-bold text-gray-800">{siteSettings.bank_name}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-green-50 pb-2">
+                        <span className="text-gray-500 text-sm">Nomor Rekening</span>
+                        <span className="font-bold text-primary text-lg">{siteSettings.bank_account_number}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500 text-sm">Atas Nama</span>
+                        <span className="font-bold text-gray-800">{siteSettings.bank_account_name}</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-green-700 mt-4 text-center">Pastikan nominal transfer sesuai dengan Total Tagihan hingga ke digit terakhir.</p>
                   </div>
-                </label>
-                
-                <label className={`flex flex-col items-center justify-center p-4 border rounded-lg cursor-pointer transition text-center gap-3 ${paymentMethod === 'cod' ? 'border-primary bg-primary/5 ring-1 ring-primary' : 'border-gray-200 hover:border-primary/50'}`}>
-                  <input type="radio" name="payment" className="hidden" checked={paymentMethod === 'cod'} onChange={() => setPaymentMethod('cod')} />
-                  <Truck size={32} className={paymentMethod === 'cod' ? 'text-primary' : 'text-gray-400'} />
-                  <div>
-                    <div className="font-bold text-gray-800 text-sm">Bayar di Tempat</div>
-                    <div className="text-xs text-gray-500">COD</div>
-                  </div>
-                </label>
+                )}
               </div>
             </div>
 

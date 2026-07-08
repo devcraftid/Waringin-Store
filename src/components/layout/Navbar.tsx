@@ -53,7 +53,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 text-primary shrink-0">
             <img src="/logo.png" alt="Waringin Store Logo" className="w-14 h-14 object-contain rounded-lg" />
-            <span className="text-2xl font-bold tracking-tight hidden md:block text-gray-800">Waringin Store</span>
+            <span className="text-xl md:text-2xl font-bold tracking-tight text-gray-800">Waringin Store</span>
           </Link>
 
           {/* Search Bar (Desktop) */}

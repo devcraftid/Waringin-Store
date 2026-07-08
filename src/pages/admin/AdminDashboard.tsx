@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, Users, Store, LayoutDashboard, Database, ShieldCheck, Menu, X } from 'lucide-react';
+import { LogOut, Users, Store, LayoutDashboard, Database, ShieldCheck, Menu, X, Settings } from 'lucide-react';
 import { useNavigate, Outlet, Link, useLocation } from 'react-router-dom';
 
 const AdminDashboard = () => {
@@ -33,6 +33,7 @@ const AdminDashboard = () => {
     { name: 'Manajemen Pengguna', path: '/admin/users', icon: <Users size={20} /> },
     { name: 'Manajemen Toko', path: '/admin/shops', icon: <Store size={20} /> },
     { name: 'Kategori Produk', path: '/admin/categories', icon: <Database size={20} /> },
+    { name: 'Pengaturan Sistem', path: '/admin/settings', icon: <Settings size={20} /> },
   ];
 
   return (

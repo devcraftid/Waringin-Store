@@ -22,6 +22,7 @@ import AdminOverview from './pages/admin/AdminOverview';
 import UserManagement from './pages/admin/UserManagement';
 import ShopManagement from './pages/admin/ShopManagement';
 import CategoryManagement from './pages/admin/CategoryManagement';
+import SystemSettings from './pages/admin/SystemSettings';
 
 // Seller
 import SellerDashboard from './pages/seller/SellerDashboard';
@@ -111,6 +112,7 @@ function App() {
               <Route path="users" element={<UserManagement />} />
               <Route path="shops" element={<ShopManagement />} />
               <Route path="categories" element={<CategoryManagement />} />
+              <Route path="settings" element={<SystemSettings />} />
             </Route>
 
           </Routes>
