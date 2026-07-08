@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useCart } from '../../context/CartContext';
 import Navbar from '../../components/layout/Navbar';
@@ -8,6 +8,7 @@ import { Minus, Plus, ShoppingCart, Store, CheckCircle, Package } from 'lucide-r
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
@@ -58,6 +59,13 @@ const ProductDetail = () => {
       setAddingToCart(false);
       alert('Produk berhasil ditambahkan ke keranjang!');
     }, 500);
+  };
+
+  const handleBuyNow = () => {
+    if (!product) return;
+    
+    addToCart(product, quantity, product.shops?.name || 'Toko');
+    navigate('/cart');
   };
 
   if (loading) {
@@ -223,6 +231,7 @@ const ProductDetail = () => {
                   {addingToCart ? 'Memasukkan...' : 'Masukkan Keranjang'}
                 </button>
                 <button 
+                  onClick={handleBuyNow}
                   disabled={product.stock === 0}
                   className="flex-1 bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-hover transition font-bold disabled:opacity-50"
                 >
