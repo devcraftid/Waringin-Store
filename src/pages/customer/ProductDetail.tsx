@@ -279,17 +279,17 @@ const ProductDetail = () => {
                 <button 
                   onClick={handleAddToCart}
                   disabled={addingToCart || product.stock === 0}
-                  className="flex-1 bg-primary/10 text-primary border border-primary px-6 py-3 rounded-md hover:bg-primary/20 transition font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="flex-1 bg-primary/10 text-primary border border-primary px-6 py-3 rounded-md hover:bg-primary/20 transition font-bold flex items-center justify-center gap-2 disabled:opacity-50 disabled:bg-gray-100 disabled:border-gray-300 disabled:text-gray-500"
                 >
                   <ShoppingCart size={20} />
-                  {addingToCart ? 'Memasukkan...' : 'Masukkan Keranjang'}
+                  {product.stock === 0 ? 'Stok Habis' : (addingToCart ? 'Memasukkan...' : 'Masukkan Keranjang')}
                 </button>
                 <button 
                   onClick={handleBuyNow}
                   disabled={product.stock === 0}
-                  className="flex-1 bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-hover transition font-bold disabled:opacity-50"
+                  className="flex-1 bg-primary text-white px-6 py-3 rounded-md hover:bg-primary-hover transition font-bold disabled:opacity-50 disabled:bg-gray-400"
                 >
-                  Beli Sekarang
+                  {product.stock === 0 ? 'Habis Terjual' : 'Beli Sekarang'}
                 </button>
               </div>
             </div>

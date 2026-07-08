@@ -237,10 +237,18 @@ const Home = () => {
                       ) : (
                         <PackageOpen size={48} strokeWidth={1} />
                       )}
-                      <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition"></div>
+                      {product.stock === 0 ? (
+                        <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 backdrop-blur-[1px]">
+                          <div className="bg-gray-800 text-white text-xs font-bold px-3 py-1.5 rounded-full border border-gray-700 shadow-lg transform -rotate-12 uppercase tracking-wider">
+                            Habis Terjual
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition"></div>
+                      )}
                       
-                      {product.discount_percentage > 0 && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded">Promo</div>
+                      {product.discount_percentage > 0 && product.stock > 0 && (
+                        <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded z-20">Promo</div>
                       )}
                     </div>
                     <div className="p-3 flex flex-col flex-grow">
