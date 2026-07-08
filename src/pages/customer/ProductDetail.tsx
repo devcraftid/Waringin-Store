@@ -21,7 +21,8 @@ const ProductDetail = () => {
           .from('products')
           .select(`
             *,
-            shops (id, name, slug)
+            shops (id, name, slug),
+            product_images (image_url)
           `)
           .eq('slug', slug)
           .single();
@@ -99,14 +100,38 @@ const ProductDetail = () => {
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-8 flex flex-col md:flex-row gap-8">
           {/* Image Section */}
           <div className="w-full md:w-2/5 shrink-0">
-            <div className="aspect-square bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400 mb-4 border border-gray-200">
-              <Package size={64} className="mb-4 text-gray-300" />
-              <span>Gambar Belum Tersedia</span>
-            </div>
+            {product.product_images && product.product_images.length > 0 ? (
+              <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden border border-gray-200 mb-4 relative">
+                <img src={product.product_images[0].image_url} alt={product.title} className="w-full h-full object-cover" />
+                {product.discount_percentage > 0 && (
+                  <div className="absolute top-4 left-4 bg-red-500 text-white font-bold px-3 py-1 rounded shadow-md">
+                    Promo
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="aspect-square bg-gray-100 rounded-lg flex flex-col items-center justify-center text-gray-400 mb-4 border border-gray-200 relative">
+                <Package size={64} className="mb-4 text-gray-300" />
+                <span>Gambar Belum Tersedia</span>
+                {product.discount_percentage > 0 && (
+                  <div className="absolute top-4 left-4 bg-red-500 text-white font-bold px-3 py-1 rounded shadow-md">
+                    Promo
+                  </div>
+                )}
+              </div>
+            )}
             <div className="flex gap-2">
-              {[1, 2, 3, 4].map(idx => (
-                <div key={idx} className="aspect-square w-16 bg-gray-100 rounded border border-gray-200 cursor-pointer hover:border-primary"></div>
-              ))}
+              {product.product_images && product.product_images.length > 0 ? (
+                product.product_images.map((img: any, idx: number) => (
+                  <div key={idx} className="aspect-square w-16 bg-gray-50 rounded border border-gray-200 cursor-pointer hover:border-primary overflow-hidden">
+                    <img src={img.image_url} alt="thumbnail" className="w-full h-full object-cover" />
+                  </div>
+                ))
+              ) : (
+                [1, 2, 3, 4].map(idx => (
+                  <div key={idx} className="aspect-square w-16 bg-gray-100 rounded border border-gray-200 cursor-pointer hover:border-primary"></div>
+                ))
+              )}
             </div>
           </div>
 
@@ -122,7 +147,19 @@ const ProductDetail = () => {
             </div>
 
             <div className="bg-gray-50 p-6 rounded-lg mb-6">
-              <div className="text-3xl font-bold text-primary">Rp {product.price.toLocaleString('id-ID')}</div>
+              {product.discount_percentage > 0 ? (
+                <>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-gray-400 line-through text-sm">Rp {product.price.toLocaleString('id-ID')}</span>
+                    <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">Diskon {product.discount_percentage}%</span>
+                  </div>
+                  <div className="text-3xl font-bold text-primary">
+                    Rp {(product.price - (product.price * (product.discount_percentage / 100))).toLocaleString('id-ID')}
+                  </div>
+                </>
+              ) : (
+                <div className="text-3xl font-bold text-primary">Rp {product.price.toLocaleString('id-ID')}</div>
+              )}
             </div>
 
             {/* Shop Info Card (Compact) */}

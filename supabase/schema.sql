@@ -102,3 +102,6 @@ CREATE POLICY "Sellers can insert their own products." ON products FOR INSERT WI
 CREATE POLICY "Sellers can update their own products." ON products FOR UPDATE USING ( EXISTS ( SELECT 1 FROM shops WHERE shops.id = shop_id AND shops.owner_id = auth.uid() ) );
 CREATE POLICY "Sellers can delete their own products." ON products FOR DELETE USING ( EXISTS ( SELECT 1 FROM shops WHERE shops.id = shop_id AND shops.owner_id = auth.uid() ) );
 CREATE POLICY "Product images are viewable by everyone." ON product_images FOR SELECT USING (true);
+CREATE POLICY "Sellers can insert product images." ON product_images FOR INSERT WITH CHECK ( EXISTS ( SELECT 1 FROM products p JOIN shops s ON p.shop_id = s.id WHERE p.id = product_id AND s.owner_id = auth.uid() ) );
+CREATE POLICY "Sellers can update product images." ON product_images FOR UPDATE USING ( EXISTS ( SELECT 1 FROM products p JOIN shops s ON p.shop_id = s.id WHERE p.id = product_id AND s.owner_id = auth.uid() ) );
+CREATE POLICY "Sellers can delete product images." ON product_images FOR DELETE USING ( EXISTS ( SELECT 1 FROM products p JOIN shops s ON p.shop_id = s.id WHERE p.id = product_id AND s.owner_id = auth.uid() ) );
