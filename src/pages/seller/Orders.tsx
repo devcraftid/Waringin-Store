@@ -25,7 +25,7 @@ const Orders = () => {
         .from('orders')
         .select(`
           *,
-          profiles (full_name, email),
+          profiles (full_name),
           order_items (
             quantity,
             price_at_time,
