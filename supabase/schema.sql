@@ -105,3 +105,14 @@ CREATE POLICY "Product images are viewable by everyone." ON product_images FOR S
 CREATE POLICY "Sellers can insert product images." ON product_images FOR INSERT WITH CHECK ( EXISTS ( SELECT 1 FROM products p JOIN shops s ON p.shop_id = s.id WHERE p.id = product_id AND s.owner_id = auth.uid() ) );
 CREATE POLICY "Sellers can update product images." ON product_images FOR UPDATE USING ( EXISTS ( SELECT 1 FROM products p JOIN shops s ON p.shop_id = s.id WHERE p.id = product_id AND s.owner_id = auth.uid() ) );
 CREATE POLICY "Sellers can delete product images." ON product_images FOR DELETE USING ( EXISTS ( SELECT 1 FROM products p JOIN shops s ON p.shop_id = s.id WHERE p.id = product_id AND s.owner_id = auth.uid() ) );
+
+-- Orders Policies
+CREATE POLICY "Customers can insert their own orders." ON orders FOR INSERT WITH CHECK (auth.uid() = customer_id);
+CREATE POLICY "Customers can view their own orders." ON orders FOR SELECT USING (auth.uid() = customer_id);
+CREATE POLICY "Sellers can view orders for their shop." ON orders FOR SELECT USING (EXISTS (SELECT 1 FROM shops WHERE shops.id = shop_id AND shops.owner_id = auth.uid()));
+CREATE POLICY "Sellers can update orders for their shop." ON orders FOR UPDATE USING (EXISTS (SELECT 1 FROM shops WHERE shops.id = shop_id AND shops.owner_id = auth.uid()));
+
+-- Order Items Policies
+CREATE POLICY "Customers can insert order items for their own orders." ON order_items FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_id AND orders.customer_id = auth.uid()));
+CREATE POLICY "Customers can view their own order items." ON order_items FOR SELECT USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_id AND orders.customer_id = auth.uid()));
+CREATE POLICY "Sellers can view order items for their shop's orders." ON order_items FOR SELECT USING (EXISTS (SELECT 1 FROM orders JOIN shops ON orders.shop_id = shops.id WHERE order_items.order_id = orders.id AND shops.owner_id = auth.uid()));
