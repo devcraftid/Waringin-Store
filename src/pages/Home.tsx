@@ -5,19 +5,21 @@ import { supabase } from '../lib/supabaseClient';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Shirt, ShoppingBag, Smartphone, Sparkles, Watch, Tv, Gem, Activity, Car, Laptop, PackageOpen } from 'lucide-react';
 
-// Categories mapping to database values or search terms
-const categories = [
-  { name: 'Pakaian', slug: 'kemeja', icon: <Shirt size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ee4d2d]" /> },
-  { name: 'Sepatu', slug: 'sepatu', icon: <ShoppingBag size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ff7337]" /> },
-  { name: 'Handphone', slug: 'handphone', icon: <Smartphone size={30} strokeWidth={1.5} className="text-[#20b2aa]" /> },
-  { name: 'Kecantikan', slug: 'kecantikan', icon: <Sparkles size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ff69b4]" /> },
-  { name: 'Jam Tangan', slug: 'jam', icon: <Watch size={30} strokeWidth={1.5} className="text-[#e6a800]" /> },
-  { name: 'Elektronik', slug: 'elektronik', icon: <Tv size={30} strokeWidth={1.5} className="text-[#4169e1]" /> },
-  { name: 'Aksesoris', slug: 'aksesoris', icon: <Gem size={30} strokeWidth={1.2} fill="currentColor" className="text-[#2ecc71]" /> },
-  { name: 'Olahraga', slug: 'olahraga', icon: <Activity size={30} strokeWidth={2} className="text-[#3f51b5]" /> },
-  { name: 'Otomotif', slug: 'otomotif', icon: <Car size={30} strokeWidth={1.2} fill="currentColor" className="text-[#707070]" /> },
-  { name: 'Komputer', slug: 'komputer', icon: <Laptop size={30} strokeWidth={1.5} className="text-[#00bfff]" /> },
-];
+const getCategoryIcon = (slug: string) => {
+  switch (slug) {
+    case 'pakaian': return <Shirt size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ee4d2d]" />;
+    case 'sepatu': return <ShoppingBag size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ff7337]" />;
+    case 'handphone': return <Smartphone size={30} strokeWidth={1.5} className="text-[#20b2aa]" />;
+    case 'kecantikan': return <Sparkles size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ff69b4]" />;
+    case 'jam-tangan': return <Watch size={30} strokeWidth={1.5} className="text-[#e6a800]" />;
+    case 'elektronik': return <Tv size={30} strokeWidth={1.5} className="text-[#4169e1]" />;
+    case 'aksesoris': return <Gem size={30} strokeWidth={1.2} fill="currentColor" className="text-[#2ecc71]" />;
+    case 'olahraga': return <Activity size={30} strokeWidth={2} className="text-[#3f51b5]" />;
+    case 'otomotif': return <Car size={30} strokeWidth={1.2} fill="currentColor" className="text-[#707070]" />;
+    case 'komputer': return <Laptop size={30} strokeWidth={1.5} className="text-[#00bfff]" />;
+    default: return <PackageOpen size={30} strokeWidth={1.2} className="text-gray-500" />;
+  }
+};
 
 const ITEMS_PER_PAGE = 12;
 
@@ -27,10 +29,20 @@ const Home = () => {
   const searchQuery = searchParams.get('search') || '';
   const categoryQuery = searchParams.get('category') || '';
 
+  const [dbCategories, setDbCategories] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+
+  // Fetch categories on mount
+  useEffect(() => {
+    const fetchCats = async () => {
+      const { data } = await supabase.from('categories').select('*').order('name');
+      if (data) setDbCategories(data);
+    };
+    fetchCats();
+  }, []);
 
   const fetchProducts = async (currentPage: number, reset: boolean = false) => {
     try {
@@ -41,7 +53,8 @@ const Home = () => {
         .select(`
           *,
           shops (name, slug),
-          product_images (image_url)
+          product_images (image_url),
+          categories!inner (name, slug)
         `, { count: 'exact' })
         .eq('status', 'active');
 
@@ -50,9 +63,9 @@ const Home = () => {
         query = query.ilike('title', `%${searchQuery}%`);
       }
 
-      // Apply Category Filter (as simple text search since we don't have categories linked directly in this schema)
+      // Apply DB Category Filter
       if (categoryQuery) {
-        query = query.ilike('title', `%${categoryQuery}%`);
+        query = query.eq('categories.slug', categoryQuery);
       }
 
       // Pagination
@@ -63,7 +76,9 @@ const Home = () => {
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      if (error) throw error;
+      if (error && error.code !== 'PGRST116') {
+        console.error('Fetch error:', error);
+      }
       
       if (reset) {
         setProducts(data || []);
@@ -82,7 +97,6 @@ const Home = () => {
     }
   };
 
-  // Reset and fetch when search or category changes
   useEffect(() => {
     setPage(1);
     fetchProducts(1, true);
@@ -153,24 +167,28 @@ const Home = () => {
                 </button>
               )}
             </div>
-            <div className="grid grid-cols-4 md:grid-cols-10 gap-x-2 gap-y-4 pt-2">
-              {categories.map((cat, idx) => (
-                <div 
-                  key={idx} 
-                  onClick={() => handleCategoryClick(cat.slug)}
-                  className="flex flex-col items-center justify-start cursor-pointer group"
-                >
-                  <div className={`w-[52px] h-[52px] md:w-[60px] md:h-[60px] bg-white rounded-2xl flex items-center justify-center mb-2 shadow-sm border border-gray-100 group-hover:-translate-y-1 transition transform duration-200 ${
-                    categoryQuery === cat.slug ? 'ring-2 ring-primary ring-offset-2 border-primary' : 'group-hover:border-primary/50 group-hover:shadow-md'
-                  }`}>
-                    {cat.icon}
+            {dbCategories.length === 0 ? (
+               <div className="text-center py-6 text-gray-400 text-sm">Belum ada kategori di database.</div>
+            ) : (
+              <div className="grid grid-cols-4 md:grid-cols-10 gap-x-2 gap-y-4 pt-2">
+                {dbCategories.map((cat) => (
+                  <div 
+                    key={cat.id} 
+                    onClick={() => handleCategoryClick(cat.slug)}
+                    className="flex flex-col items-center justify-start cursor-pointer group"
+                  >
+                    <div className={`w-[52px] h-[52px] md:w-[60px] md:h-[60px] bg-white rounded-2xl flex items-center justify-center mb-2 shadow-sm border border-gray-100 group-hover:-translate-y-1 transition transform duration-200 ${
+                      categoryQuery === cat.slug ? 'ring-2 ring-primary ring-offset-2 border-primary' : 'group-hover:border-primary/50 group-hover:shadow-md'
+                    }`}>
+                      {getCategoryIcon(cat.slug)}
+                    </div>
+                    <span className={`text-[10px] md:text-xs text-center leading-tight px-1 max-w-[80px] break-words ${categoryQuery === cat.slug ? 'text-primary font-bold' : 'text-gray-700'}`}>
+                      {cat.name}
+                    </span>
                   </div>
-                  <span className={`text-[10px] md:text-xs text-center leading-tight px-1 max-w-[80px] break-words ${categoryQuery === cat.slug ? 'text-primary font-bold' : 'text-gray-700'}`}>
-                    {cat.name}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -179,7 +197,7 @@ const Home = () => {
           <div className="bg-white border-b-4 border-primary sticky top-[60px] md:top-[116px] z-40 mb-4 rounded-t-lg shadow-sm">
             <h2 className="text-center py-4 text-primary font-bold uppercase text-lg">
               {searchQuery ? `Hasil Pencarian: "${searchQuery}"` : 
-               categoryQuery ? `Kategori: ${categories.find(c => c.slug === categoryQuery)?.name || categoryQuery}` : 
+               categoryQuery ? `Kategori: ${dbCategories.find(c => c.slug === categoryQuery)?.name || categoryQuery}` : 
                'Rekomendasi Untukmu'}
             </h2>
           </div>
