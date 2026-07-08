@@ -116,3 +116,32 @@ CREATE POLICY "Sellers can update orders for their shop." ON orders FOR UPDATE U
 CREATE POLICY "Customers can insert order items for their own orders." ON order_items FOR INSERT WITH CHECK (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_id AND orders.customer_id = auth.uid()));
 CREATE POLICY "Customers can view their own order items." ON order_items FOR SELECT USING (EXISTS (SELECT 1 FROM orders WHERE orders.id = order_id AND orders.customer_id = auth.uid()));
 CREATE POLICY "Sellers can view order items for their shop's orders." ON order_items FOR SELECT USING (EXISTS (SELECT 1 FROM orders JOIN shops ON orders.shop_id = shops.id WHERE order_items.order_id = orders.id AND shops.owner_id = auth.uid()));
+
+-- 8. Wishlists Table
+CREATE TABLE wishlists (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  customer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  product_id UUID REFERENCES products(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(customer_id, product_id)
+);
+
+-- 9. User Addresses Table
+CREATE TABLE user_addresses (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  customer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  label TEXT,
+  full_name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  full_address TEXT NOT NULL,
+  city TEXT NOT NULL,
+  postal_code TEXT NOT NULL,
+  is_primary BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE wishlists ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_addresses ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Customers can manage their wishlists." ON wishlists FOR ALL USING (auth.uid() = customer_id);
+CREATE POLICY "Customers can manage their addresses." ON user_addresses FOR ALL USING (auth.uid() = customer_id);

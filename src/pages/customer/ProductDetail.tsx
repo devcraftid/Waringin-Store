@@ -2,17 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
-import { Minus, Plus, ShoppingCart, Store, CheckCircle, Package } from 'lucide-react';
+import { Minus, Plus, ShoppingCart, Store, CheckCircle, Package, Heart } from 'lucide-react';
 
 const ProductDetail = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -40,6 +44,24 @@ const ProductDetail = () => {
     if (slug) fetchProduct();
   }, [slug]);
 
+  useEffect(() => {
+    const checkWishlist = async () => {
+      if (!user || !product) return;
+      try {
+        const { data, error } = await supabase
+          .from('wishlists')
+          .select('id')
+          .eq('customer_id', user.id)
+          .eq('product_id', product.id)
+          .single();
+        if (data) setIsWishlisted(true);
+      } catch (e) {
+        // Not found in wishlist is fine
+      }
+    };
+    checkWishlist();
+  }, [user, product]);
+
   const handleQuantityChange = (type: 'increase' | 'decrease') => {
     if (type === 'increase' && quantity < (product?.stock || 0)) {
       setQuantity(q => q + 1);
@@ -66,6 +88,28 @@ const ProductDetail = () => {
     
     addToCart(product, quantity, product.shops?.name || 'Toko');
     navigate('/cart');
+  };
+
+  const toggleWishlist = async () => {
+    if (!user) {
+      alert('Silakan login terlebih dahulu untuk menyimpan ke Wishlist');
+      navigate('/login');
+      return;
+    }
+    setWishlistLoading(true);
+    try {
+      if (isWishlisted) {
+        await supabase.from('wishlists').delete().eq('customer_id', user.id).eq('product_id', product.id);
+        setIsWishlisted(false);
+      } else {
+        await supabase.from('wishlists').insert([{ customer_id: user.id, product_id: product.id }]);
+        setIsWishlisted(true);
+      }
+    } catch (error) {
+      console.error('Error toggling wishlist:', error);
+    } finally {
+      setWishlistLoading(false);
+    }
   };
 
   if (loading) {
@@ -145,7 +189,17 @@ const ProductDetail = () => {
 
           {/* Details Section */}
           <div className="flex-1 flex flex-col">
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">{product.title}</h1>
+            <div className="flex justify-between items-start gap-4 mb-2">
+              <h1 className="text-2xl font-bold text-gray-800">{product.title}</h1>
+              <button 
+                onClick={toggleWishlist}
+                disabled={wishlistLoading}
+                className={`p-2 rounded-full border transition ${isWishlisted ? 'bg-red-50 border-red-200 text-red-500' : 'bg-gray-50 border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'}`}
+                title="Tambahkan ke Wishlist"
+              >
+                <Heart size={24} fill={isWishlisted ? "currentColor" : "none"} />
+              </button>
+            </div>
             <div className="flex items-center gap-4 text-sm text-gray-500 mb-6">
               <span className="flex items-center gap-1 text-yellow-500 font-medium">★ 4.8</span>
               <span className="border-l border-gray-300 h-4"></span>
