@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { DollarSign, ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, History, Download, Package } from 'lucide-react';
+import { DollarSign, ArrowUpRight, ArrowDownRight, Wallet, TrendingUp, History, Download, Package, X } from 'lucide-react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 
@@ -10,6 +10,9 @@ const Finance = () => {
   const [activeBalance, setActiveBalance] = useState(0);
   const [pendingBalance, setPendingBalance] = useState(0);
   const [completedOrders, setCompletedOrders] = useState<any[]>([]);
+
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
 
   useEffect(() => {
     if (shop) fetchFinance();
@@ -58,8 +61,76 @@ const Finance = () => {
     }
   };
 
+  const handleWithdraw = (e: React.FormEvent) => {
+    e.preventDefault();
+    const amount = Number(withdrawAmount);
+    
+    if (amount < 50000) {
+      alert('Minimal penarikan adalah Rp 50.000');
+      return;
+    }
+    
+    if (amount > activeBalance) {
+      alert('Saldo tidak mencukupi untuk penarikan ini.');
+      return;
+    }
+    
+    alert(`Berhasil! Permintaan penarikan dana sebesar Rp ${amount.toLocaleString('id-ID')} telah diajukan ke Admin. (Ini adalah simulasi)`);
+    setIsWithdrawModalOpen(false);
+    setWithdrawAmount('');
+  };
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Withdraw Modal */}
+      {isWithdrawModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="font-bold text-gray-800 text-lg">Tarik Dana Penjualan</h3>
+              <button onClick={() => setIsWithdrawModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors p-1"><X size={20}/></button>
+            </div>
+            <form onSubmit={handleWithdraw} className="p-6">
+              <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100 flex justify-between items-center">
+                <span className="text-sm font-bold text-blue-800">Saldo Maksimal</span>
+                <span className="text-lg font-black text-blue-700">Rp {activeBalance.toLocaleString('id-ID')}</span>
+              </div>
+              <div className="space-y-1.5 mb-6">
+                <label className="text-sm font-bold text-gray-700">Nominal Penarikan</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 font-bold text-gray-500">Rp</span>
+                  <input 
+                    type="number" 
+                    required 
+                    min="50000"
+                    max={activeBalance}
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    placeholder="Contoh: 100000"
+                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all outline-none font-bold text-gray-800"
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Minimal penarikan Rp 50.000</p>
+              </div>
+              <div className="space-y-1.5 mb-8">
+                <label className="text-sm font-bold text-gray-700">Rekening Tujuan</label>
+                <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white outline-none font-medium text-gray-700">
+                  <option>BCA - 123456789 (a.n {shop.name})</option>
+                  <option>Mandiri - 987654321 (a.n {shop.name})</option>
+                </select>
+              </div>
+              <button 
+                type="submit" 
+                disabled={activeBalance < 50000}
+                className="w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:shadow-none"
+              >
+                Ajukan Penarikan
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
       <div className="mb-8">
         <h2 className="text-2xl font-extrabold text-gray-900 tracking-tight">Keuangan Toko</h2>
         <p className="text-gray-500 mt-1">Pantau dan kelola pendapatan penjualan toko Anda.</p>
@@ -80,7 +151,13 @@ const Finance = () => {
             <h3 className="text-4xl font-black mb-2 tracking-tight">Rp {loading ? '...' : activeBalance.toLocaleString('id-ID')}</h3>
             <p className="text-sm text-blue-100 font-medium">Dana dari pesanan selesai, siap ditarik</p>
             
-            <button className="mt-8 w-full bg-white text-primary py-3.5 rounded-xl font-bold hover:bg-gray-50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
+            <button 
+              onClick={() => {
+                if(activeBalance <= 0) alert('Saldo aktif Anda masih kosong. Selesaikan pesanan pelanggan terlebih dahulu.');
+                else setIsWithdrawModalOpen(true);
+              }}
+              className="mt-8 w-full bg-white text-primary py-3.5 rounded-xl font-bold hover:bg-gray-50 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+            >
               Tarik Dana Sekarang
             </button>
           </div>
