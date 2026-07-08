@@ -6,6 +6,7 @@ export interface CartItem {
   price: number;
   quantity: number;
   shop_name: string;
+  shop_id: string;
   image?: string;
 }
 
@@ -42,14 +43,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return newItems;
       } else {
         // Add new item
+        const finalPrice = product.discount_percentage > 0 
+          ? product.price - (product.price * (product.discount_percentage / 100))
+          : product.price;
+
+        const imageUrl = product.product_images && product.product_images.length > 0
+          ? product.product_images[0].image_url
+          : undefined;
+
         return [...prevItems, {
           id: product.id,
           title: product.title,
-          price: product.price,
+          price: finalPrice,
           quantity: quantity,
           shop_name: shopName,
-          // Use product_images if available, otherwise generic image logic
-          image: product.image_url || 'https://via.placeholder.com/150'
+          shop_id: product.shop_id,
+          image: imageUrl
         }];
       }
     });

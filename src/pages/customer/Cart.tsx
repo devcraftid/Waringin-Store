@@ -2,17 +2,82 @@ import React from 'react';
 import Navbar from '../../components/layout/Navbar';
 import Footer from '../../components/layout/Footer';
 import { useCart } from '../../context/CartContext';
+import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabaseClient';
 import { Link, useNavigate } from 'react-router-dom';
-import { Minus, Plus, Trash2, ShoppingCart, Store } from 'lucide-react';
+import { Minus, Plus, Trash2, ShoppingCart, Store, Package } from 'lucide-react';
 
 const Cart = () => {
   const { items, updateQuantity, removeFromCart, cartTotal, clearCart } = useCart();
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [isCheckingOut, setIsCheckingOut] = React.useState(false);
 
-  const handleCheckout = () => {
-    alert('Simulasi Checkout Berhasil! Anda akan diarahkan ke halaman pembayaran.');
-    clearCart();
-    navigate('/');
+  const handleCheckout = async () => {
+    if (!user) {
+      alert('Anda harus login terlebih dahulu untuk melakukan checkout.');
+      navigate('/login');
+      return;
+    }
+
+    if (items.length === 0) return;
+
+    try {
+      setIsCheckingOut(true);
+
+      // Group items by shop_id
+      const itemsByShop = items.reduce((acc, item) => {
+        if (!acc[item.shop_id]) {
+          acc[item.shop_id] = [];
+        }
+        acc[item.shop_id].push(item);
+        return acc;
+      }, {} as Record<string, typeof items>);
+
+      // Create an order for each shop
+      for (const shopId of Object.keys(itemsByShop)) {
+        const shopItems = itemsByShop[shopId];
+        const shopTotal = shopItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+        // 1. Insert order
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .insert([{
+            customer_id: user.id,
+            shop_id: shopId,
+            total_amount: shopTotal,
+            status: 'pending',
+            payment_method: 'bank_transfer'
+          }])
+          .select()
+          .single();
+
+        if (orderError) throw orderError;
+
+        // 2. Insert order items
+        const orderItemsToInsert = shopItems.map(item => ({
+          order_id: orderData.id,
+          product_id: item.id,
+          quantity: item.quantity,
+          price_at_time: item.price
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItemsToInsert);
+
+        if (itemsError) throw itemsError;
+      }
+
+      clearCart();
+      navigate('/checkout/success');
+      
+    } catch (error) {
+      console.error('Error during checkout:', error);
+      alert('Terjadi kesalahan saat checkout. Pastikan semua produk tersedia atau coba lagi.');
+    } finally {
+      setIsCheckingOut(false);
+    }
   };
 
   return (
@@ -52,8 +117,12 @@ const Cart = () => {
                     <div key={item.id} className="p-4 flex gap-4">
                       <input type="checkbox" className="w-4 h-4 mt-2 text-primary rounded border-gray-300 focus:ring-primary" checked readOnly />
                       
-                      <div className="w-20 h-20 bg-gray-100 rounded border border-gray-200 shrink-0">
-                        <img src={item.image} alt={item.title} className="w-full h-full object-cover rounded" />
+                      <div className="w-20 h-20 bg-gray-50 rounded border border-gray-200 shrink-0 flex items-center justify-center overflow-hidden text-gray-300">
+                        {item.image ? (
+                          <img src={item.image} alt={item.title} className="w-full h-full object-cover rounded" />
+                        ) : (
+                          <Package size={24} />
+                        )}
                       </div>
                       
                       <div className="flex-1 flex flex-col">
@@ -126,9 +195,10 @@ const Cart = () => {
                 
                 <button 
                   onClick={handleCheckout}
-                  className="w-full bg-primary text-white py-3 rounded-md hover:bg-primary-hover transition font-bold mb-4"
+                  disabled={isCheckingOut || items.length === 0}
+                  className="w-full bg-primary text-white py-3 rounded-md hover:bg-primary-hover transition font-bold mb-4 disabled:opacity-50"
                 >
-                  Beli ({items.reduce((acc, curr) => acc + curr.quantity, 0)})
+                  {isCheckingOut ? 'Memproses...' : `Beli (${items.reduce((acc, curr) => acc + curr.quantity, 0)})`}
                 </button>
                 
                 <Link to="/" className="w-full block text-center py-2 text-sm text-primary font-medium hover:underline">
