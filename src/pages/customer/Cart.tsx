@@ -67,6 +67,29 @@ const Cart = () => {
           .insert(orderItemsToInsert);
 
         if (itemsError) throw itemsError;
+
+        // 3. Manual Stock Reduction (Fallback if Trigger is not installed)
+        for (const item of shopItems) {
+          // Fetch current stock first
+          const { data: product } = await supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.id)
+            .single();
+            
+          if (product && product.stock >= item.quantity) {
+            // Update stock
+            const { error: updateError } = await supabase
+              .from('products')
+              .update({ stock: product.stock - item.quantity })
+              .eq('id', item.id);
+              
+            if (updateError) {
+              console.warn(`Gagal memotong stok untuk produk ${item.id}:`, updateError.message);
+              console.warn('Ini wajar jika Anda adalah Pembeli biasa karena RLS. Harap pastikan Trigger SQL sudah dipasang di Supabase!');
+            }
+          }
+        }
       }
 
       clearCart();
