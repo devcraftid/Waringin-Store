@@ -123,6 +123,7 @@ const Overview = () => {
           Status Kelengkapan Toko
         </h3>
         <div className="space-y-4">
+          {/* 1. Profil Toko */}
           <div className="flex items-start gap-4 p-5 border rounded-xl bg-green-50/50 border-green-200/60 shadow-sm transition-all hover:bg-green-50">
             <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold shadow-md shrink-0">
               ✓
@@ -133,6 +134,31 @@ const Overview = () => {
             </div>
           </div>
           
+          {/* 2. Rekening Bank */}
+          {shop.bank_name && shop.bank_account_number ? (
+             <div className="flex items-start gap-4 p-5 border rounded-xl bg-green-50/50 border-green-200/60 shadow-sm transition-all hover:bg-green-50">
+               <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold shadow-md shrink-0">
+                 ✓
+               </div>
+               <div className="pt-0.5">
+                 <h4 className="font-bold text-gray-800 text-base">Rekening Pencairan Diatur</h4>
+                 <p className="text-sm text-gray-500 mt-1">Anda sudah menautkan rekening bank ({shop.bank_name}).</p>
+               </div>
+             </div>
+          ) : (
+            <div className="flex items-start gap-4 p-5 border rounded-xl bg-blue-50/50 border-blue-200/60 shadow-sm transition-all hover:bg-blue-50">
+              <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold shadow-md shrink-0">
+                2
+              </div>
+              <div className="pt-0.5">
+                <h4 className="font-bold text-gray-800 text-base">Atur Rekening Pencairan</h4>
+                <p className="text-sm text-gray-500 mt-1">Anda belum menautkan rekening bank. Hal ini wajib untuk mencairkan saldo Anda nanti.</p>
+                <Link to="/seller/settings" className="mt-3 inline-block bg-primary text-white text-xs font-bold px-4 py-2 rounded">Atur Sekarang</Link>
+              </div>
+            </div>
+          )}
+
+          {/* 3. Produk */}
           {stats.productCount > 0 ? (
             <div className="flex items-start gap-4 p-5 border rounded-xl bg-green-50/50 border-green-200/60 shadow-sm transition-all hover:bg-green-50">
               <div className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold shadow-md shrink-0">
@@ -146,7 +172,7 @@ const Overview = () => {
           ) : (
             <div className="flex items-start gap-4 p-5 border rounded-xl bg-blue-50/50 border-blue-200/60 shadow-sm transition-all hover:bg-blue-50">
               <div className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold shadow-md shrink-0">
-                2
+                3
               </div>
               <div className="pt-0.5">
                 <h4 className="font-bold text-gray-800 text-base">Tambah Produk Pertama</h4>

@@ -114,14 +114,23 @@ const Finance = () => {
               </div>
               <div className="space-y-1.5 mb-8">
                 <label className="text-sm font-bold text-gray-700">Rekening Tujuan</label>
-                <select className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white outline-none font-medium text-gray-700">
-                  <option>BCA - 123456789 (a.n {shop.name})</option>
-                  <option>Mandiri - 987654321 (a.n {shop.name})</option>
+                <select 
+                  required
+                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white outline-none font-medium text-gray-700"
+                >
+                  {shop.bank_name && shop.bank_account_number ? (
+                    <option>{shop.bank_name} - {shop.bank_account_number} (a.n {shop.bank_account_name})</option>
+                  ) : (
+                    <option value="" disabled selected>Belum ada rekening diatur. Harap atur di Pengaturan Toko.</option>
+                  )}
                 </select>
+                {!shop.bank_name && (
+                   <p className="text-xs text-red-500 mt-1 font-bold">Harap isi rekening pencairan di menu Pengaturan Toko terlebih dahulu!</p>
+                )}
               </div>
               <button 
                 type="submit" 
-                disabled={activeBalance < 50000}
+                disabled={activeBalance < 50000 || !shop.bank_name}
                 className="w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:bg-primary-hover shadow-lg shadow-primary/20 transition-all disabled:opacity-50 disabled:shadow-none"
               >
                 Ajukan Penarikan
