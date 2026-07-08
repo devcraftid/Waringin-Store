@@ -1,49 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Search, Filter, Box, Clock, Truck, CheckCircle, XCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
-import { useAuth } from '../../context/AuthContext';
+import { useOutletContext } from 'react-router-dom';
 
 const Orders = () => {
-  const { user } = useAuth();
+  const { shop } = useOutletContext<{ shop: any }>();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all'); // all, pending, paid, shipped, completed, cancelled
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
+    if (shop) {
       fetchOrders();
     }
-  }, [user]);
+  }, [shop]);
 
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      // 1. Get seller's shop id
-      const { data: shopData } = await supabase
-        .from('shops')
-        .select('id')
-        .eq('owner_id', user?.id)
-        .single();
+      if (!shop) return;
 
-      if (!shopData) {
-        setOrders([]);
-        return;
-      }
-
-      // 2. Get orders for this shop
       const { data, error } = await supabase
         .from('orders')
         .select(`
           *,
-          profiles:customer_id (full_name, email),
+          profiles (full_name, email),
           order_items (
             quantity,
             price_at_time,
             products (title, product_images (image_url))
           )
         `)
-        .eq('shop_id', shopData.id)
+        .eq('shop_id', shop.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
