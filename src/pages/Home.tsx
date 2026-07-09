@@ -3,21 +3,22 @@ import Navbar from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { supabase } from '../lib/supabaseClient';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
-import { Shirt, ShoppingBag, Smartphone, Sparkles, Watch, Tv, Gem, Activity, Car, Laptop, PackageOpen } from 'lucide-react';
+import { Shirt, ShoppingBag, Smartphone, Sparkles, Watch, Tv, Gem, Activity, Car, Laptop, PackageOpen, AppWindow } from 'lucide-react';
 
-const getCategoryIcon = (slug: string) => {
+const getCategoryDesign = (slug: string) => {
   switch (slug) {
-    case 'pakaian': return <Shirt size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ee4d2d]" />;
-    case 'sepatu': return <ShoppingBag size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ff7337]" />;
-    case 'handphone': return <Smartphone size={30} strokeWidth={1.5} className="text-[#20b2aa]" />;
-    case 'kecantikan': return <Sparkles size={30} strokeWidth={1.2} fill="currentColor" className="text-[#ff69b4]" />;
-    case 'jam-tangan': return <Watch size={30} strokeWidth={1.5} className="text-[#e6a800]" />;
-    case 'elektronik': return <Tv size={30} strokeWidth={1.5} className="text-[#4169e1]" />;
-    case 'aksesoris': return <Gem size={30} strokeWidth={1.2} fill="currentColor" className="text-[#2ecc71]" />;
-    case 'olahraga': return <Activity size={30} strokeWidth={2} className="text-[#3f51b5]" />;
-    case 'otomotif': return <Car size={30} strokeWidth={1.2} fill="currentColor" className="text-[#707070]" />;
-    case 'komputer': return <Laptop size={30} strokeWidth={1.5} className="text-[#00bfff]" />;
-    default: return <PackageOpen size={30} strokeWidth={1.2} className="text-gray-500" />;
+    case 'pakaian': return { icon: <Shirt size={28} strokeWidth={1.5} />, color: 'from-orange-400 to-red-500' };
+    case 'sepatu': return { icon: <ShoppingBag size={28} strokeWidth={1.5} />, color: 'from-amber-400 to-orange-500' };
+    case 'handphone': return { icon: <Smartphone size={28} strokeWidth={1.5} />, color: 'from-teal-400 to-emerald-500' };
+    case 'kecantikan': return { icon: <Sparkles size={28} strokeWidth={1.5} />, color: 'from-pink-400 to-rose-500' };
+    case 'jam-tangan': return { icon: <Watch size={28} strokeWidth={1.5} />, color: 'from-yellow-400 to-amber-500' };
+    case 'elektronik': return { icon: <Tv size={28} strokeWidth={1.5} />, color: 'from-blue-400 to-indigo-500' };
+    case 'aksesoris': return { icon: <Gem size={28} strokeWidth={1.5} />, color: 'from-emerald-400 to-cyan-500' };
+    case 'olahraga': return { icon: <Activity size={28} strokeWidth={1.5} />, color: 'from-indigo-400 to-purple-500' };
+    case 'otomotif': return { icon: <Car size={28} strokeWidth={1.5} />, color: 'from-gray-500 to-gray-700' };
+    case 'komputer': return { icon: <Laptop size={28} strokeWidth={1.5} />, color: 'from-cyan-400 to-blue-500' };
+    case 'website-aplikasi': return { icon: <AppWindow size={28} strokeWidth={1.5} />, color: 'from-purple-500 to-fuchsia-600' };
+    default: return { icon: <PackageOpen size={28} strokeWidth={1.5} />, color: 'from-gray-400 to-gray-500' };
   }
 };
 
@@ -171,22 +172,25 @@ const Home = () => {
                <div className="text-center py-6 text-gray-400 text-sm">Belum ada kategori di database.</div>
             ) : (
               <div className="grid grid-cols-4 md:grid-cols-10 gap-x-2 gap-y-4 pt-2">
-                {dbCategories.map((cat) => (
-                  <div 
-                    key={cat.id} 
-                    onClick={() => handleCategoryClick(cat.slug)}
-                    className="flex flex-col items-center justify-start cursor-pointer group"
-                  >
-                    <div className={`w-[52px] h-[52px] md:w-[60px] md:h-[60px] bg-white rounded-2xl flex items-center justify-center mb-2 shadow-sm border border-gray-100 group-hover:-translate-y-1 transition transform duration-200 ${
-                      categoryQuery === cat.slug ? 'ring-2 ring-primary ring-offset-2 border-primary' : 'group-hover:border-primary/50 group-hover:shadow-md'
-                    }`}>
-                      {getCategoryIcon(cat.slug)}
+                {dbCategories.map((cat) => {
+                  const design = getCategoryDesign(cat.slug);
+                  return (
+                    <div 
+                      key={cat.id} 
+                      onClick={() => handleCategoryClick(cat.slug)}
+                      className="flex flex-col items-center justify-start cursor-pointer group"
+                    >
+                      <div className={`w-[52px] h-[52px] md:w-[60px] md:h-[60px] rounded-2xl flex items-center justify-center mb-2 shadow-sm group-hover:-translate-y-1 transition transform duration-200 bg-gradient-to-br ${design.color} text-white ${
+                        categoryQuery === cat.slug ? 'ring-4 ring-primary/30 ring-offset-2' : 'group-hover:shadow-md group-hover:scale-105'
+                      }`}>
+                        {design.icon}
+                      </div>
+                      <span className={`text-[10px] md:text-xs text-center leading-tight px-1 max-w-[80px] break-words ${categoryQuery === cat.slug ? 'text-primary font-bold' : 'text-gray-700'}`}>
+                        {cat.name}
+                      </span>
                     </div>
-                    <span className={`text-[10px] md:text-xs text-center leading-tight px-1 max-w-[80px] break-words ${categoryQuery === cat.slug ? 'text-primary font-bold' : 'text-gray-700'}`}>
-                      {cat.name}
-                    </span>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </section>
