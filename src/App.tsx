@@ -16,6 +16,19 @@ import ShopDetail from './pages/customer/ShopDetail';
 import CheckoutSuccess from './pages/customer/CheckoutSuccess';
 import Checkout from './pages/customer/Checkout';
 
+// Info Pages
+import Help from './pages/info/Help';
+import Payment from './pages/info/Payment';
+import Shipping from './pages/info/Shipping';
+import Returns from './pages/info/Returns';
+import Warranty from './pages/info/Warranty';
+import Contact from './pages/info/Contact';
+import About from './pages/info/About';
+import Careers from './pages/info/Careers';
+import Privacy from './pages/info/Privacy';
+import Terms from './pages/info/Terms';
+import Blog from './pages/info/Blog';
+
 // Admin
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminOverview from './pages/admin/AdminOverview';
@@ -49,9 +62,30 @@ function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout/success" element={<CheckoutSuccess />} />
 
+            {/* Info Pages */}
+            <Route path="/help" element={<Help />} />
+            <Route path="/help/payment" element={<Payment />} />
+            <Route path="/help/shipping" element={<Shipping />} />
+            <Route path="/help/returns" element={<Returns />} />
+            <Route path="/help/warranty" element={<Warranty />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/blog" element={<Blog />} />
+
             {/* Customer / Common Protected Routes */}
             <Route 
               path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile/notifications" 
               element={
                 <ProtectedRoute>
                   <Profile />
