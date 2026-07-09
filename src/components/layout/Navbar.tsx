@@ -36,13 +36,17 @@ const Navbar = () => {
       <div className="bg-primary text-white text-xs py-1.5 px-4 flex justify-between items-center hidden md:flex">
         <div className="flex gap-4">
           <Link to="/seller" className="hover:text-gray-200">Seller Centre</Link>
-          <span>Download</span>
-          <span>Follow us on Social Media</span>
+          <a href="#download-app" className="hover:text-gray-200">Download</a>
+          <div className="flex items-center gap-2">
+            <span>Ikuti kami di</span>
+            <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-gray-200">FB</a>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-gray-200">IG</a>
+          </div>
         </div>
         <div className="flex gap-4">
-          <Link to="/" className="flex items-center gap-1 hover:text-gray-200"><Bell size={14}/> Notifikasi</Link>
-          <Link to="/" className="hover:text-gray-200">Bantuan</Link>
-          <span>Bahasa Indonesia</span>
+          <Link to="/profile/notifications" className="flex items-center gap-1 hover:text-gray-200"><Bell size={14}/> Notifikasi</Link>
+          <Link to="/help" className="flex items-center gap-1 hover:text-gray-200">Bantuan</Link>
+          <span className="flex items-center gap-1">Bahasa Indonesia</span>
         </div>
       </div>
 

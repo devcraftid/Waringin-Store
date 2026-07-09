@@ -10,13 +10,13 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-gray-900 mb-4">Layanan Pelanggan</h3>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to="/" className="hover:text-primary">Bantuan</Link></li>
-              <li><Link to="/" className="hover:text-primary">Metode Pembayaran</Link></li>
-              <li><Link to="/" className="hover:text-primary">Lacak Pesanan</Link></li>
-              <li><Link to="/" className="hover:text-primary">Gratis Ongkir</Link></li>
-              <li><Link to="/" className="hover:text-primary">Pengembalian Barang & Dana</Link></li>
-              <li><Link to="/" className="hover:text-primary">Garansi Waringin Store</Link></li>
-              <li><Link to="/" className="hover:text-primary">Hubungi Kami</Link></li>
+              <li><Link to="/help" className="hover:text-primary">Bantuan</Link></li>
+              <li><Link to="/help/payment" className="hover:text-primary">Metode Pembayaran</Link></li>
+              <li><Link to="/profile/orders" className="hover:text-primary">Lacak Pesanan</Link></li>
+              <li><Link to="/help/shipping" className="hover:text-primary">Gratis Ongkir</Link></li>
+              <li><Link to="/help/returns" className="hover:text-primary">Pengembalian Barang & Dana</Link></li>
+              <li><Link to="/help/warranty" className="hover:text-primary">Garansi Waringin Store</Link></li>
+              <li><Link to="/contact" className="hover:text-primary">Hubungi Kami</Link></li>
             </ul>
           </div>
 
@@ -24,13 +24,13 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-gray-900 mb-4">Jelajahi Waringin Store</h3>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li><Link to="/" className="hover:text-primary">Tentang Kami</Link></li>
-              <li><Link to="/" className="hover:text-primary">Karir</Link></li>
-              <li><Link to="/" className="hover:text-primary">Kebijakan Privasi</Link></li>
-              <li><Link to="/" className="hover:text-primary">Syarat & Ketentuan</Link></li>
-              <li><Link to="/" className="hover:text-primary">Blog Waringin Store</Link></li>
+              <li><Link to="/about" className="hover:text-primary">Tentang Kami</Link></li>
+              <li><Link to="/careers" className="hover:text-primary">Karir</Link></li>
+              <li><Link to="/privacy" className="hover:text-primary">Kebijakan Privasi</Link></li>
+              <li><Link to="/terms" className="hover:text-primary">Syarat & Ketentuan</Link></li>
+              <li><Link to="/blog" className="hover:text-primary">Blog Waringin Store</Link></li>
               <li><Link to="/seller" className="hover:text-primary">Seller Centre</Link></li>
-              <li><Link to="/" className="hover:text-primary">Flash Sale</Link></li>
+              <li><Link to="/?category=flash-sale" className="hover:text-primary">Flash Sale</Link></li>
             </ul>
           </div>
 
@@ -59,36 +59,36 @@ const Footer = () => {
             <h3 className="font-bold text-gray-900 mb-4">Ikuti Kami</h3>
             <ul className="space-y-3 text-sm text-gray-600">
               <li>
-                <Link to="/" className="flex items-center gap-2 hover:text-primary">
+                <a href="https://facebook.com/waringinstore" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-primary">
                   <div className="bg-gray-100 p-2 rounded-full text-xs font-bold w-8 h-8 flex items-center justify-center">FB</div> Facebook
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/" className="flex items-center gap-2 hover:text-primary">
+                <a href="https://instagram.com/waringinstore" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-primary">
                   <div className="bg-gray-100 p-2 rounded-full text-xs font-bold w-8 h-8 flex items-center justify-center">IG</div> Instagram
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/" className="flex items-center gap-2 hover:text-primary">
+                <a href="https://twitter.com/waringinstore" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-primary">
                   <div className="bg-gray-100 p-2 rounded-full text-xs font-bold w-8 h-8 flex items-center justify-center">X</div> Twitter
-                </Link>
+                </a>
               </li>
               <li>
-                <Link to="/" className="flex items-center gap-2 hover:text-primary">
+                <a href="https://youtube.com/waringinstore" target="_blank" rel="noreferrer" className="flex items-center gap-2 hover:text-primary">
                   <div className="bg-gray-100 p-2 rounded-full text-xs font-bold w-8 h-8 flex items-center justify-center">YT</div> YouTube
-                </Link>
+                </a>
               </li>
             </ul>
           </div>
 
           {/* Download App */}
-          <div>
+          <div id="download-app">
             <h3 className="font-bold text-gray-900 mb-4">Download Aplikasi Waringin Store</h3>
             <div className="flex gap-2">
               <div className="w-24 h-24 bg-gray-200 border rounded flex items-center justify-center text-xs text-gray-500">QR Code</div>
               <div className="flex flex-col gap-2 justify-center">
-                <div className="w-24 h-10 bg-gray-800 text-white rounded flex items-center justify-center text-xs font-bold">App Store</div>
-                <div className="w-24 h-10 bg-gray-800 text-white rounded flex items-center justify-center text-xs font-bold">Google Play</div>
+                <a href="https://apps.apple.com" target="_blank" rel="noreferrer" className="w-24 h-10 bg-gray-800 text-white rounded flex items-center justify-center text-xs font-bold hover:bg-gray-700 transition">App Store</a>
+                <a href="https://play.google.com" target="_blank" rel="noreferrer" className="w-24 h-10 bg-gray-800 text-white rounded flex items-center justify-center text-xs font-bold hover:bg-gray-700 transition">Google Play</a>
               </div>
             </div>
           </div>
